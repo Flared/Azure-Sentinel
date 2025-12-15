@@ -1,9 +1,8 @@
 
 {
+    "apiVersion": "2022-10-01",
     "name": "FireworkV2_CL",
     "type": "Microsoft.OperationalInsights/workspaces/tables",
-    "apiVersion": "2021-03-01-privatepreview",
-    "tags": {},
     "properties": {
         "plan": "Analytics",
         "schema": {

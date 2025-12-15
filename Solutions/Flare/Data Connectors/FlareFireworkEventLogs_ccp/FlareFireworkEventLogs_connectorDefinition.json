@@ -1,15 +1,30 @@
 {
     "name": "FireworkPush",
-    "apiVersion": "2022-09-01-preview",
+    "apiVersion": "2025-09-01",
     "type": "Microsoft.SecurityInsights/dataConnectorDefinitions",
     "kind": "Customizable",
-    "location": "{{workspaceLocation}}",
+    "location": "[parameters('workspace-location')]",
     "properties": {
         "connectorUiConfig": {
-            "id": "FireworkPush",
-            "title": "Flare Push Connector",
-            "publisher": "Flare Systems",
+            "availability": {
+                "status": 1
+            },
+            "connectivityCriteria": [
+                {
+                    "type": "IsConnectedQuery",
+                    "value": [
+                        "FireworkV2_CL\n            | summarize LastLogReceived = max(TimeGenerated)\n            | project IsConnected = LastLogReceived > ago(7d)"
+                    ]
+                }
+            ],
+            "dataTypes": [
+                {
+                    "name": "FireworkV2_CL",
+                    "lastDataReceivedQuery": "FireworkV2_CL\n            | summarize Time = max(TimeGenerated)\n            | where isnotempty(Time)"
+                }
+            ],
             "descriptionMarkdown": "The [Flare](https://flare.io) connector provides the capability to ingest threat intelligence and exposure data from Flare into Microsoft Sentinel. Flare identifies your company's digital assets made publicly available due to human error or malicious attacks, including leaked credentials, exposed cloud buckets, darkweb mentions, and more.",
+            "graphQueriesTableName": "FireworkV2_CL",
             "graphQueries": [
                 {
                     "metricName": "Total Flare Events",
@@ -20,71 +35,26 @@
             "sampleQueries": [
                 {
                     "description": "Flare - All Events",
-                    "query": "FireworkV2_CL \n | sort by TimeGenerated desc"
+                    "query": "{{graphQueriesTableName}} \n | sort by TimeGenerated desc"
                 },
                 {
                     "description": "Flare - High Risk Events (Score >= 4)",
-                    "query": "FireworkV2_CL \n | where RiskScore >= 4\n | project TimeGenerated, EventSeverity, EventType, ['title'], source_name, RiskScore, Url\n | sort by TimeGenerated desc"
+                    "query": "{{graphQueriesTableName}} \n | where RiskScore >= 4\n | project TimeGenerated, EventSeverity, EventType, ['title'], source_name, RiskScore, Url\n | sort by TimeGenerated desc"
                 },
                 {
                     "description": "Flare - Credential Leaks",
-                    "query": "FireworkV2_CL \n | where EventType == \"CredentialLeak\"\n | project TimeGenerated, EventSeverity, ['title'], source_name, keyword, RiskScore\n | sort by TimeGenerated desc"
+                    "query": "{{graphQueriesTableName}} \n | where EventType == \"CredentialLeak\"\n | project TimeGenerated, EventSeverity, ['title'], source_name, keyword, RiskScore\n | sort by TimeGenerated desc"
                 },
                 {
                     "description": "Flare - Events by Severity",
-                    "query": "FireworkV2_CL \n | summarize Count = count() by EventSeverity\n | order by Count desc"
+                    "query": "{{graphQueriesTableName}} \n | summarize Count = count() by EventSeverity\n | order by Count desc"
                 },
                 {
                     "description": "Flare - Events by Type",
-                    "query": "FireworkV2_CL \n | summarize Count = count() by EventType\n | order by Count desc"
+                    "query": "{{graphQueriesTableName}} \n | summarize Count = count() by EventType\n | order by Count desc"
                 }
             ],
-            "dataTypes": [
-                {
-                    "name": "FireworkV2_CL",
-                    "lastDataReceivedQuery": "FireworkV2_CL\n            | summarize Time = max(TimeGenerated)\n            | where isnotempty(Time)"
-                }
-            ],
-            "connectivityCriteria": [
-                {
-                    "type": "IsConnectedQuery",
-                    "value": [
-                        "FireworkV2_CL\n            | summarize LastLogReceived = max(TimeGenerated)\n            | project IsConnected = LastLogReceived > ago(7d)"
-                    ]
-                }
-            ],
-            "availability": {
-                "status": 1
-            },
-            "permissions": {
-                "resourceProvider": [
-                    {
-                        "provider": "Microsoft.OperationalInsights/workspaces",
-                        "permissionsDisplayText": "read and write permissions are required.",
-                        "providerDisplayName": "Workspace",
-                        "scope": "Workspace",
-                        "requiredPermissions": {
-                            "write": true,
-                            "read": true,
-                            "delete": true
-                        }
-                    }
-                ],
-                "customs": [
-                    {
-                        "name": "Microsoft Entra",
-                        "description": "Permission to create an app registration in Microsoft Entra ID."
-                    },
-                    {
-                        "name": "Microsoft Azure",
-                        "description": "Permission to assign Monitoring Metrics Publisher role on data collection rule (DCR)."
-                    },
-                    {
-                        "name": "Flare",
-                        "description": "Permission to configure Microsoft Sentinel integration in Flare."
-                    }
-                ]
-            },
+            "id": "FireworkPush",
             "instructionSteps": [
                 {
                     "title": "1. Create ARM Resources and Provide the Required Permissions",
@@ -111,7 +81,7 @@
                     "instructions": [
                         {
                             "parameters": {
-                                "label": "Entra Application (Client) ID",
+                                "label": "Entra App Registration Application ID",
                                 "fillWith": [
                                     "ApplicationId"
                                 ],
@@ -121,7 +91,7 @@
                         },
                         {
                             "parameters": {
-                                "label": "Entra Directory (Tenant) ID",
+                                "label": "Tenant ID (Directory ID)",
                                 "fillWith": [
                                     "TenantId"
                                 ]
@@ -154,17 +124,41 @@
                 },
                 {
                     "title": "3. Configure Alert Channel in Flare",
-                    "description": "As an organization administrator, you can configure an Alert Channel in Flare to send data to Sentinel.",
-                    "instructions": [
-                        {
-                            "type": "Markdown",
-                            "parameters": {
-                                "content": "1. Authenticate on [Flare](https://app.flare.io)\n2. Access the [alerts page](https://app.flare.io/#/alerts?activeTab=alert-channels) to create a new alert channel.\n3. Select 'Microsoft Sentinel' and copy the above fields in the form.\n\nFor more details, refer to the [Flare documentation](https://docs.flare.io)."
-                            }
-                        }
-                    ]
+                    "description": "As an organization administrator, authenticate on [Flare](https://app.flare.io) and access the [alerts page](https://app.flare.io/#/alerts?activeTab=alert-channels) to create a new alert channel. Select 'Microsoft Sentinel' and copy the above fields in the form. For more details, refer to the [Flare documentation](https://docs.flare.io).",
+                    "instructions": []
                 }
-            ]
+            ],
+            "permissions": {
+                "resourceProvider": [
+                    {
+                        "provider": "Microsoft.OperationalInsights/workspaces",
+                        "permissionsDisplayText": "read and write permissions are required.",
+                        "providerDisplayName": "Workspace",
+                        "scope": "Workspace",
+                        "requiredPermissions": {
+                            "write": true,
+                            "read": true,
+                            "delete": true
+                        }
+                    }
+                ],
+                "customs": [
+                    {
+                        "name": "Microsoft Entra",
+                        "description": "Permission to create an app registration in Microsoft Entra ID."
+                    },
+                    {
+                        "name": "Microsoft Azure",
+                        "description": "Permission to assign Monitoring Metrics Publisher role on data collection rule (DCR)."
+                    },
+                    {
+                        "name": "Flare",
+                        "description": "Permission to configure Microsoft Sentinel integration in Flare."
+                    }
+                ]
+            },
+            "publisher": "Flare Systems",
+            "title": "Flare Push Connector"
         }
     }
 }

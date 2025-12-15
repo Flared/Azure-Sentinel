@@ -18,6 +18,6 @@ relevantTechniques:
   - T1583
 query: |
   FireworkV2_CL
-  | where tolower(source) contains "certstream" and (RiskScore == 3 or RiskScore == 4 or RiskScore == 5)
+  | where source_s contains "certstream" and (risk_score_d == "3" or risk_score_d == "4" or risk_score_d == "5")
 version: 2.0.0
 kind: Scheduled

@@ -18,6 +18,6 @@ relevantTechniques:
   - T1555
 query: |
   FireworkV2_CL
-  | where tolower(category_name) contains "infected device" or source=="genesis_market" and (RiskScore == 3 or RiskScore == 4 or RiskScore == 5)
+  | where category_name_s contains "Infected Device" or source_s=="genesis_market" and (risk_score_d == "3" or risk_score_d == "4" or risk_score_d == "5")
 version: 2.0.0
 kind: Scheduled

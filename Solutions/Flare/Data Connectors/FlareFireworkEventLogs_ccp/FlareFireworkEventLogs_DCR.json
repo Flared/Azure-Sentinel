@@ -1,8 +1,8 @@
 {
     "name": "FireworkCustomDCR",
-    "apiVersion": "2021-09-01-preview",
+    "apiVersion": "2024-03-11",
     "type": "Microsoft.Insights/dataCollectionRules",
-    "location": "{{workspaceLocation}}",
+    "location": "[parameters('workspace-location')]",
     "properties": {
         "streamDeclarations": {
             "Custom-FireworkEventsStream": {
@@ -145,7 +145,7 @@
         "destinations": {
             "logAnalytics": [
                 {
-                    "workspaceResourceId": "{{workspaceResourceId}}",
+                    "workspaceResourceId": "[variables('workspaceResourceId')]",
                     "name": "clv2ws1"
                 }
             ]
@@ -162,6 +162,6 @@
                 "outputStream": "Custom-FireworkV2_CL"
             }
         ],
-        "dataCollectionEndpointId": "{{dataCollectionEndpointId}}"
+        "dataCollectionEndpointId": "[concat('/subscriptions/',parameters('subscription'),'/resourceGroups/',parameters('resourceGroupName'),'/providers/Microsoft.Insights/dataCollectionEndpoints/',parameters('workspace'))]"
     }
 }
