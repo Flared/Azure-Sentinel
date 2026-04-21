@@ -1,7 +1,7 @@
-id: 9cb7c337-f176-4af6-b0e8-b6b7552d762d
-name: Flare Infected Device Results
+id: 8e5ae0d6-7f2d-475e-ada3-ed33441deeba
+name: Flare Lookalike Domain Results
 description: |
-    'Infected Device Results on Darkweb or Telegram'
+    'Look-alike domains are a primary vector for phishing and brand impersonation. Flare provides automated monitoring to detect these domains when they are registered or issued an SSL certificate.'
 severity: Medium
 status: Available
 requiredDataConnectors:
@@ -13,13 +13,13 @@ queryPeriod: 1h
 triggerOperator: gt
 triggerThreshold: 0
 tactics:
-  - CredentialAccess
+  - Reconnaissance
 relevantTechniques:
-  - T1555
+  - T1593
 query: |
   FireworkV2_CL
   | where notempty(uid) and RiskScore >= 3
   | extend index_name = split(uid, "/")[0]
-  | where index_name in ("bot", "stealer_log")
-version: 3.0.0
+  | where index_name == "domain"
+version: 1.0.0
 kind: Scheduled

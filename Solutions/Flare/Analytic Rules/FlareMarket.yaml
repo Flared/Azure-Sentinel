@@ -1,7 +1,7 @@
-id: 9cb7c337-f176-4af6-b0e8-b6b7552d762d
-name: Flare Infected Device Results
+id: 9265ae4d-6bb0-4c18-961d-f7aae67d1546
+name: Flare Marketplace Results
 description: |
-    'Infected Device Results on Darkweb or Telegram'
+    'The Marketplaces category includes underground markets and shops where illicit goods and services are bought and sold.'
 severity: Medium
 status: Available
 requiredDataConnectors:
@@ -13,13 +13,13 @@ queryPeriod: 1h
 triggerOperator: gt
 triggerThreshold: 0
 tactics:
-  - CredentialAccess
+  - Reconnaissance
 relevantTechniques:
-  - T1555
+  - T1593
 query: |
   FireworkV2_CL
   | where notempty(uid) and RiskScore >= 3
   | extend index_name = split(uid, "/")[0]
-  | where index_name in ("bot", "stealer_log")
-version: 3.0.0
+  | where index_name == "listing"
+version: 1.0.0
 kind: Scheduled
